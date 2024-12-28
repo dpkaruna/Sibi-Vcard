@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sibi's vCard</title>
+  <title>Interactive Card</title>
   <style>
     * {
       box-sizing: border-box;
@@ -31,11 +31,11 @@
 
       width: 50%;
       max-width: 543.5px;
-      aspect-ratio: 1194 / 659;
+      aspect-ratio: 1087 / 641;
       box-shadow: 0 1px 5px #00000099;
 
       border-radius: 10px;
-      background-image: url(https://i.ibb.co/0qg2PxJ/Sibi-John-A-v-Card-Final.jpg);
+      background-image: url(https://i.ibb.co/4m2Y87P/Sibi-John-A-v-Card-Final.jpg);
       background-size: cover;
       background-position: center center;
 
@@ -45,6 +45,17 @@
       transition-property: transform, box-shadow;
       transition-timing-function: ease-out;
       transform: rotate3d(0);
+    }
+
+    @media (max-width: 500px) {
+      .card {
+        width: 180%;
+        height: 45%;
+        padding: 10px;
+        margin: 0;
+        aspect-ratio: 641 / 1087;
+        rotate: 90deg;
+      }
     }
 
     .card:hover {
@@ -61,6 +72,7 @@
 
       background-image: radial-gradient(circle at 50% -20%, #ffffff22, #0000000f);
     }
+
   </style>
 </head>
 <body>
@@ -105,7 +117,7 @@
     document.addEventListener('click', () => {
       if (!isDownloading) {  // Check if the download is already in progress
         isDownloading = true;  // Set the flag to true
-        fetch('https://i.ibb.co/1R5KWvQ/Sibi-John-A-v-Card-gold-copy.jpg')
+        fetch('https://i.ibb.co/4m2Y87P/Sibi-John-A-v-Card-Final.jpg')
           .then(response => response.blob())
           .then(blob => {
             const link = document.createElement('a');
