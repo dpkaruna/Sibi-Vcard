@@ -51,7 +51,7 @@
       .card {
         width: 190%;
         height: 45%;
-        padding: 10px;
+        padding: 100px;
         margin: 0;
         aspect-ratio: 641 / 1087;
         rotate: 90deg;
@@ -72,7 +72,6 @@
 
       background-image: radial-gradient(circle at 50% -20%, #ffffff22, #0000000f);
     }
-
   </style>
 </head>
 <body>
@@ -84,6 +83,11 @@
     const $card = document.querySelector('.card');
     let bounds;
     let isDownloading = false;  // Flag to track download status
+
+    // Disable right-click on the page
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); // Prevent the default right-click menu
+    });
 
     function rotateToMouse(e) {
       const mouseX = e.clientX;
