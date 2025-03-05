@@ -89,6 +89,13 @@
       e.preventDefault(); // Prevent the default right-click menu
     });
 
+    // Disable inspect element
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+      }
+    });
+
     function rotateToMouse(e) {
       const mouseX = e.clientX;
       const mouseY = e.clientY;
