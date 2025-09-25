@@ -1,152 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sibi's vCard</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sibi's vCard</title>
+<style>
+* { box-sizing: border-box; }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  perspective: 1500px;
+  overflow: hidden;
+  background: black; /* for particles */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    body {
-      font-family: system-ui, sans-serif;
-      perspective: 1500px;
-      background: linear-gradient(white, #efefef);
-    }
+/* Particle canvas always behind */
+#particle-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
 
-    .card {
-      font-weight: bold;
-      padding: 1em;
-      text-align: right;
-      color: #181a1a;
+/* vCard */
+.card {
+  font-weight: bold;
+  padding: 1em;
+  text-align: right;
+  color: #181a1a;
 
-      width: 50%;
-      max-width: 543.5px;
-      aspect-ratio: 1087 / 641;
-      box-shadow: 0 1px 5px #00000099;
+  width: 50%;
+  max-width: 543.5px;
+  aspect-ratio: 1087 / 641;
+  box-shadow: 0 1px 5px #00000099;
 
-      border-radius: 10px;
-      background-image: url(https://i.ibb.co/4m2Y87P/Sibi-John-A-v-Card-Final.jpg);
-      background-size: cover;
-      background-position: center center;
+  border-radius: 10px;
+  background-image: url(https://i.ibb.co/4m2Y87P/Sibi-John-A-v-Card-Final.jpg);
+  background-size: cover;
+  background-position: center center;
 
-      position: fixed;
+  position: fixed;
 
-      transition-duration: 300ms;
-      transition-property: transform, box-shadow;
-      transition-timing-function: ease-out;
-      transform: rotate3d(0);
-    }
+  transition-duration: 300ms;
+  transition-property: transform, box-shadow;
+  transition-timing-function: ease-out;
+  transform: rotate3d(0);
+}
 
-    @media (max-width: 500px) {
-      .card {
-        width: 90%;
-        height: auto;
-        padding: 100px;
-        margin: 0;
-        aspect-ratio: auto;
-        rotate: 90deg;
-      }
-    }
+@media (max-width: 500px) {
+  .card {
+    width: 90%;
+    height: auto;
+    padding: 100px;
+    aspect-ratio: auto;
+    rotate: 90deg;
+  }
+}
 
-    .card:hover {
-      transition-duration: 150ms;
-      box-shadow: 0 5px 20px 5px #00000044;
-    }
+.card:hover {
+  transition-duration: 150ms;
+  box-shadow: 0 5px 20px 5px #00000044;
+}
 
-    .card .glow {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      left: 0;
-      top: 0;
-
-      background-image: radial-gradient(circle at 50% -20%, #ffffff22, #0000000f);
-    }
-  </style>
+.card .glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-image: radial-gradient(circle at 50% -20%, #ffffff22, #0000000f);
+}
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="glow"></div>
-  </div>
 
-  <script>
-    const $card = document.querySelector('.card');
-    let bounds;
-    let isDownloading = false;  // Flag to track download status
+<div id="particle-bg"></div>
 
-    // Disable right-click on the page
-    document.addEventListener('contextmenu', (e) => {
-      e.preventDefault(); // Prevent the default right-click menu
-    });
+<div class="card">
+  <div class="glow"></div>
+</div>
 
-    // Disable inspect element
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-        e.preventDefault();
-      }
-    });
+<!-- p5.js for particle background -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
 
-    function rotateToMouse(e) {
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-      const leftX = mouseX - bounds.x;
-      const topY = mouseY - bounds.y;
-      const center = {
-        x: leftX - bounds.width / 2,
-        y: topY - bounds.height / 2
-      };
-      const distance = Math.sqrt(center.x**2 + center.y**2);
+<script>
+// ===============================
+// Particle Flow Background
+// ===============================
+const deg = a => Math.PI/180*a;
+const rand = (v1,v2) => Math.floor(v1 + Math.random()*(v2-v1));
+const opt = {
+  particles: window.innerWidth/500 ? 1000 : 500,
+  noiseScale:0.009,
+  angle: deg(-90),
+  h1: rand(0,360),
+  h2: rand(0,360),
+  s1: rand(20,90),
+  s2: rand(20,90),
+  l1: rand(30,80),
+  l2: rand(30,80),
+  strokeWeight:1.2,
+  tail:82
+};
+const Particles = [];
+let time=0;
 
-      $card.style.transform = `scale3d(1.07, 1.07, 1.07) rotate3d(${center.y / 100}, ${-center.x / 100}, 0, ${Math.log(distance) * 2}deg)`;
+document.body.addEventListener('click',()=>{
+  opt.h1=rand(0,360);
+  opt.h2=rand(0,360);
+  opt.s1=rand(20,90);
+  opt.s2=rand(20,90);
+  opt.l1=rand(30,80);
+  opt.l2=rand(30,80);
+  opt.angle+=deg(60)*(Math.random()>0.5?1:-1);
+  for(let p of Particles){p.randomize();}
+});
 
-      $card.querySelector('.glow').style.backgroundImage = `
-        radial-gradient(circle at ${center.x * 2 + bounds.width / 2}px ${center.y * 2 + bounds.height / 2}px, #ffffff55, #0000000f)
-      `;
-    }
+class Particle {
+  constructor(x,y){
+    this.x=x; this.y=y; this.lx=x; this.ly=y;
+    this.vx=0; this.vy=0; this.ax=0; this.ay=0;
+    this.hueSemen=Math.random();
+    this.hue=this.hueSemen>0.5?20+opt.h1:20+opt.h2;
+    this.sat=this.hueSemen>0.5?opt.s1:opt.s2;
+    this.light=this.hueSemen>0.5?opt.l1:opt.l2;
+    this.maxSpeed=this.hueSemen>0.5?3:2;
+  }
+  randomize(){
+    this.hueSemen=Math.random();
+    this.hue=this.hueSemen>0.5?20+opt.h1:20+opt.h2;
+    this.sat=this.hueSemen>0.5?opt.s1:opt.s2;
+    this.light=this.hueSemen>0.5?opt.l1:opt.l2;
+    this.maxSpeed=this.hueSemen>0.5?3:2;
+  }
+  update(){
+    this.follow();
+    this.vx+=this.ax; this.vy+=this.ay;
+    const p=Math.sqrt(this.vx**2+this.vy**2);
+    const a=Math.atan2(this.vy,this.vx);
+    const m=Math.min(this.maxSpeed,p);
+    this.vx=Math.cos(a)*m; this.vy=Math.sin(a)*m;
+    this.x+=this.vx; this.y+=this.vy;
+    this.ax=0; this.ay=0;
+    this.edges();
+  }
+  follow(){
+    const angle=noise(this.x*opt.noiseScale,this.y*opt.noiseScale,time*opt.noiseScale)*Math.PI*0.5+opt.angle;
+    this.ax+=Math.cos(angle);
+    this.ay+=Math.sin(angle);
+  }
+  updatePrev(){this.lx=this.x; this.ly=this.y;}
+  edges(){
+    if(this.x<0){this.x=width; this.updatePrev();}
+    if(this.x>width){this.x=0; this.updatePrev();}
+    if(this.y<0){this.y=height; this.updatePrev();}
+    if(this.y>height){this.y=0; this.updatePrev();}
+  }
+  render(){
+    stroke(`hsla(${this.hue},${this.sat}%,${this.light}%,.5)`);
+    line(this.x,this.y,this.lx,this.ly);
+    this.updatePrev();
+  }
+}
 
-    $card.addEventListener('mouseenter', () => {
-      bounds = $card.getBoundingClientRect();
-      document.addEventListener('mousemove', rotateToMouse);
-    });
+function setup(){
+  const canvas=createCanvas(window.innerWidth,window.innerHeight);
+  canvas.parent('particle-bg');
+  for(let i=0;i<opt.particles;i++){
+    Particles.push(new Particle(Math.random()*width,Math.random()*height));
+  }
+  strokeWeight(opt.strokeWeight);
+}
 
-    $card.addEventListener('mouseleave', () => {
-      document.removeEventListener('mousemove', rotateToMouse);
-      $card.style.transform = '';
-      $card.style.background = '';
-    });
+function draw(){
+  time++;
+  background(0,100-opt.tail);
+  for(let p of Particles){p.update(); p.render();}
+}
 
-    document.addEventListener('click', () => {
-      if (!isDownloading) {  // Check if the download is already in progress
-        isDownloading = true;  // Set the flag to true
-        fetch('https://i.ibb.co/4m2Y87P/Sibi-John-A-v-Card-Final.jpg')
-          .then(response => response.blob())
-          .then(blob => {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'Sibi_vCard.jpg';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+function windowResized(){resizeCanvas(window.innerWidth,window.innerHeight);}
 
-            // Reset the flag after the download
-            isDownloading = false;
-          })
-          .catch(err => {
-            console.error('Error downloading the image:', err);
-            isDownloading = false;  // Reset the flag in case of an error
-          });
-      }
-    });
-  </script>
+// ===============================
+// 3D Card Interaction + Download
+// ===============================
+const $card = document.querySelector('.card');
+let bounds;
+let isDownloading = false;
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if(e.key==='F12' || (e.ctrlKey && e.shiftKey && e.key==='I')) e.preventDefault();
+});
+
+function rotateToMouse(e){
+  const mouseX=e.clientX;
+  const mouseY=e.clientY;
+  const leftX=mouseX-bounds.x;
+  const topY=mouseY-bounds.y;
+  const center={x:leftX-bounds.width/2, y:topY-bounds.height/2};
+  const distance=Math.sqrt(center.x**2+center.y**2);
+
+  $card.style.transform=`scale3d(1.07,1.07,1.07) rotate3d(${center.y/100},${-center.x/100},0,${Math.log(distance)*2}deg)`;
+  $card.querySelector('.glow').style.backgroundImage=
+    `radial-gradient(circle at ${center.x*2+bounds.width/2}px ${center.y*2+bounds.height/2}px, #ffffff55, #0000000f)`;
+}
+
+$card.addEventListener('mouseenter',()=>{
+  bounds=$card.getBoundingClientRect();
+  document.addEventListener('mousemove',rotateToMouse);
+});
+
+$card.addEventListener('mouseleave',()=>{
+  document.removeEventListener('mousemove',rotateToMouse);
+  $card.style.transform='';
+  $card.style.background='';
+});
+
+document.addEventListener('click',()=>{
+  if(!isDownloading){
+    isDownloading=true;
+    fetch('https://i.ibb.co/4m2Y87P/Sibi-John-A-v-Card-Final.jpg')
+      .then(r=>r.blob())
+      .then(blob=>{
+        const link=document.createElement('a');
+        link.href=URL.createObjectURL(blob);
+        link.download='Sibi_vCard.jpg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        isDownloading=false;
+      })
+      .catch(err=>{console.error(err); isDownloading=false;});
+  }
+});
+</script>
 </body>
 </html>
